@@ -1,3 +1,8 @@
+---
+marp: true
+theme: default
+---
+
 # MiniAMM
 
 Install [foundry](https://getfoundry.sh/forge/overview/) and initialize the forge workspace.

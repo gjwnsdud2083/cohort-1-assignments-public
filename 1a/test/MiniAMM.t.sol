@@ -91,7 +91,7 @@ contract MiniAMMTest is Test {
     }
 
     function test_AddLiquidityFirstTime() public {
-        uint256 xAmount = 1000 * 10 ** 18;
+        uint256 xAmount = 1000 * 10 ** 18; 
         uint256 yAmount = 2000 * 10 ** 18;
 
         vm.startPrank(alice);
