@@ -19,7 +19,7 @@ if [ -d "cohort-1-assignments-public" ]; then
     cd cohort-1-assignments-public
     git pull origin main
 else
-    git clone https://github.com/Juyeong-Byeon/cohort-1-assignments-public.git
+    git clone https://github.com/gjwnsdud2083/cohort-1-assignments-public.git
     cd cohort-1-assignments-public
 fi
 
