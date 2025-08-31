@@ -11,6 +11,7 @@ services:
     volumes:
       - ./sc-deployer:/workspace
       - ./geth-init:/shared
+      - .:/workspace-root
     working_dir: /workspace
     entrypoint: ["/bin/sh", "/workspace/entrypoint.sh"]
     depends_on:
