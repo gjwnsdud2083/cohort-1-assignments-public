@@ -18,7 +18,18 @@ services:
       - geth
     networks:
       - geth-network
-  # sc-deployment-server:
+  sc-deployment-server:
+    image: caddy:latest
+    container_name: sc-deployment-server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./example-deployment.json:/usr/share/caddy/deployment.json
+      - ./sc-deployment-server/Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - sc-deployer
+    networks:
+      - geth-network
   geth:
     image: ethereum/client-go:v1.15.0
     container_name: geth
