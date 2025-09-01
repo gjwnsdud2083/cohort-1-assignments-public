@@ -1,0 +1,16 @@
+# Reverse Proxy 설정
+:80 {
+    # Geth RPC 엔드포인트
+    reverse_proxy /rpc/* geth:8545
+    
+    # 스마트 컨트랙트 배포 정보
+    handle /deployment/* {
+        rewrite * /deployment.json
+        reverse_proxy sc-deployment-server:80
+    }
+    
+    # 기본 페이지
+    file_server / {
+        root /usr/share/caddy
+    }
+}
