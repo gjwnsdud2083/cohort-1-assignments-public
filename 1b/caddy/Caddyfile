@@ -1,16 +1,57 @@
 # Reverse Proxy 설정
 :80 {
-    # Geth RPC 엔드포인트
-    reverse_proxy /rpc/* geth:8545
+    # Geth RPC 엔드포인트 - GET 요청 처리 (빈 페이지 반환)
+    handle_path /rpc {
+        method GET
+        respond "" 200
+    }
+    
+    # Geth RPC 엔드포인트 - POST 요청 처리 (Geth로 프록시)
+    handle_path /rpc {
+        method POST
+        reverse_proxy geth:8545
+    }
+    
+    # Geth RPC 엔드포인트 - 하위 경로
+    handle /rpc/* {
+        reverse_proxy geth:8545
+    }
     
     # 스마트 컨트랙트 배포 정보
-    handle /deployment/* {
+    handle /deployment {
         rewrite * /deployment.json
         reverse_proxy sc-deployment-server:80
     }
     
-    # 기본 페이지
-    file_server / {
-        root /usr/share/caddy
+    # Blockscout Explorer - URL rewrite 후 frontend로 전달
+    handle /explorer {
+        rewrite * /
+        reverse_proxy frontend:3000
+    }
+    
+    # Blockscout Explorer 하위 경로
+    handle /explorer/* {
+        rewrite * /
+        reverse_proxy frontend:3000
+    }
+    
+    # Blockscout API (backend)
+    handle /api/* {
+        reverse_proxy backend:4000
+    }
+    
+    # Blockscout Stats API
+    handle /stats/* {
+        reverse_proxy stats:4001
+    }
+    
+    # Blockscout Visualizer
+    handle /visualizer/* {
+        reverse_proxy visualizer:4002
+    }
+    
+    # Blockscout Frontend (메인 페이지) - 기본 경로
+    handle {
+        reverse_proxy frontend:3000
     }
 }
