@@ -35,6 +35,11 @@
         reverse_proxy frontend:3000
     }
     
+    # Graph Node GraphQL (playground)
+    handle_path /graph-playground* {
+        reverse_proxy graph-node:8000
+    }
+    
     # Blockscout API (backend)
     handle /api/* {
         reverse_proxy backend:4000

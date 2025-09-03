@@ -16,18 +16,7 @@ services:
       - sc-deployment-server
     networks:
       - geth-network
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: ngrok
-    ports:
-      - "4040:4040"
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-    command: http caddy:80
-    depends_on:
-      - caddy
-    networks:
-      - geth-network
+
   sc-deployer:
   # Error invoking remote method 'docker-start-container': Error: (HTTP code 400) unexpected - failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "/bin/bash": stat /bin/bash: no such file or directory: unknown
     image: ghcr.io/foundry-rs/foundry:latest
@@ -101,10 +90,76 @@ services:
       - geth
     networks:
       - geth-network
-  # graph-ipfs:
-  # graph-postgres:
-  # graph-redis:
-  # graph-node:
+  # Graph stack
+  graph-ipfs:
+    image: ipfs/kubo:latest
+    container_name: graph-ipfs
+    ports:
+      - "5001:5001"   # IPFS HTTP API
+      # - "8080:8080" # IPFS Gateway (optional)
+      # - "4001:4001" # IPFS Swarm (optional)
+    environment:
+      - IPFS_PROFILE=server
+    command: daemon --migrate=true --agent-version-suffix=docker
+    volumes:
+      - graph-ipfs-data:/data/ipfs
+      - graph-ipfs-export:/export
+    networks:
+      - geth-network
+
+  graph-postgres:
+    image: postgres:15-alpine
+    container_name: graph-postgres
+    environment:
+      - POSTGRES_USER=graph
+      - POSTGRES_PASSWORD=graph
+      - POSTGRES_DB=graph
+      - POSTGRES_INITDB_ARGS=--locale=C --encoding=UTF8
+      - LANG=C
+      - LC_ALL=C
+    # Internal only; avoid host port conflicts
+    volumes:
+      - graph-postgres-data:/var/lib/postgresql/data
+    networks:
+      - geth-network
+
+  graph-redis:
+    image: redis:7-alpine
+    container_name: graph-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    # Internal only
+    volumes:
+      - graph-redis-data:/data
+    networks:
+      - geth-network
+
+  graph-node:
+    image: graphprotocol/graph-node:latest
+    container_name: graph-node
+    platform: linux/amd64
+    environment:
+      # Database
+      - postgres_host=graph-postgres
+      - postgres_user=graph
+      - postgres_pass=graph
+      - postgres_db=graph
+      # IPFS
+      - ipfs=http://graph-ipfs:5001
+      # Ethereum RPC (name:URL)
+      - ethereum=dev:http://geth:8545
+      # Optional: disable consensus checks in dev
+      - GRAPH_ALLOW_NON_DETERMINISTIC_IPFS=true
+    ports:
+      - "8000:8000"   # GraphQL
+      - "8001:8001"   # Admin/Status
+      # - "8020:8020" # JSON-RPC (optional)
+    depends_on:
+      - graph-postgres
+      - graph-redis
+      - graph-ipfs
+      - geth
+    networks:
+      - geth-network
 
   # blockscout: should be another docker-compose.yml file from https://github.com/blockscout/blockscout/tree/master/docker-compose. Don't create a container in this file.
 
@@ -112,6 +167,10 @@ volumes:
   geth-data:
   caddy-data:
   caddy-config:
+  graph-postgres-data:
+  graph-redis-data:
+  graph-ipfs-data:
+  graph-ipfs-export:
 
 networks:
   geth-network:
