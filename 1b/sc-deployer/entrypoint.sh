@@ -12,7 +12,12 @@ until [ -f "/shared/geth-init-complete" ]; do
 done
 echo "✅ Prefunding completed, proceeding with deployment..."
 
-# Clone the repository
+# Clean up and clone repository fresh
+echo "🧹 Cleaning up previous repository..."
+rm -rf /workspace/cohort-1-assignments-public
+
+cd /workspace
+
 echo "📥 Cloning repository..."
 if [ -d "cohort-1-assignments-public" ]; then
     echo "Repository already exists, pulling latest changes..."
