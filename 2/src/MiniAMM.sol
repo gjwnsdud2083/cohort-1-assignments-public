@@ -17,6 +17,25 @@ contract MiniAMM is IMiniAMM, IMiniAMMEvents, MiniAMMLP {
 
     // implement constructor
     constructor(address _tokenX, address _tokenY) MiniAMMLP(_tokenX, _tokenY) {
+         // 1. check if tokenX or tokenY is zero address
+        if (_tokenX == address(0)) {
+            revert("tokenX cannot be zero address");
+        }
+        if (_tokenY == address(0)) {
+            revert("tokenY cannot be zero address");
+        }
+        // 2. check if tokens are different
+        if (_tokenX == _tokenY) {
+            revert("Tokens must be different");
+        }
+        // 3. set tokenX and tokenY(order matters)
+        if (_tokenX < _tokenY) {    
+            tokenX = _tokenX;
+            tokenY = _tokenY;
+        } else {
+            tokenX = _tokenY;
+            tokenY = _tokenX;
+        }
     }
 
     // Helper function to calculate square root
@@ -34,16 +53,46 @@ contract MiniAMM is IMiniAMM, IMiniAMMEvents, MiniAMMLP {
     // add parameters and implement function.
     // this function will determine the 'k'.
     function _addLiquidityFirstTime(uint256 xAmountIn, uint256 yAmountIn) internal returns (uint256 lpMinted) {
+        IERC20(tokenX).transferFrom(msg.sender, address(this), xAmountIn);
+        IERC20(tokenY).transferFrom(msg.sender, address(this), yAmountIn);
+        xReserve += xAmountIn;
+        yReserve += yAmountIn;
+        k = xReserve * yReserve;
+        lpMinted = sqrt(xReserve * yReserve);
+        _mintLP(msg.sender, lpMinted);
+        emit AddLiquidity(xAmountIn, yAmountIn);
+
+        return lpMinted;
     }
 
     // add parameters and implement function.
     // this function will increase the 'k'
     // because it is transferring liquidity from users to this contract.
     function _addLiquidityNotFirstTime(uint256 xAmountIn) internal returns (uint256 lpMinted) {
+        uint256 yRequired = (xAmountIn * yReserve) / xReserve;
+        
+        // Calculate LP tokens BEFORE updating reserves
+        lpMinted = (xAmountIn * totalSupply()) / xReserve;
+        
+        IERC20(tokenX).transferFrom(msg.sender, address(this), xAmountIn);
+        IERC20(tokenY).transferFrom(msg.sender, address(this), yRequired);
+        xReserve += xAmountIn;
+        yReserve += yRequired;
+        k = xReserve * yReserve;
+        
+        _mintLP(msg.sender, lpMinted);
+        emit AddLiquidity(xAmountIn, yRequired);
+
+        return lpMinted;
     }
 
     // complete the function. Should transfer LP token to the user.
     function addLiquidity(uint256 xAmountIn, uint256 yAmountIn) external returns (uint256 lpMinted) {
+        if (k == 0) {
+            return _addLiquidityFirstTime(xAmountIn, yAmountIn);
+        } else {
+            return _addLiquidityNotFirstTime(xAmountIn);
+        }
     }
 
     // Remove liquidity by burning LP tokens
