@@ -1,0 +1,22 @@
+# PostgreSQL database data directories
+blockscout/services/blockscout-db-data/
+blockscout/services/stats-db-data/
+
+# Docker volumes and data
+geth-data/
+redis-data/
+
+# Environment files
+.env
+*.env
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+
+

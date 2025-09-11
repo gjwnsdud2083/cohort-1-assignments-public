@@ -1,12 +1,14 @@
 # Database and data files
 **/blockscout-db-data/
 **/ipfs/blocks/
+**/graph/data/
 
 # Environment files
 *.env
 
 # Logs
 *.log
+**/logs/
 
 # OS generated files
 .DS_Store
