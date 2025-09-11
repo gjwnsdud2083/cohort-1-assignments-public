@@ -22,7 +22,7 @@ fi
 cd /workspace
 
 echo "📥 Cloning repository..."
-git clone https://github.com/gjwnsdud2083/cohort-1-assignments-public.git
+git clone -b assignment-2 https://github.com/gjwnsdud2083/cohort-1-assignments-public.git
 cd cohort-1-assignments-public/1a
 
 # 의존성 설치
