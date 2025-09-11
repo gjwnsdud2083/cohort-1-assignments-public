@@ -1,62 +1,70 @@
-# Reverse Proxy 설정
+{
+    auto_https off
+}
+
+(cors) {
+    @cors_preflight* method OPTIONS
+    @cors* header Origin *
+
+    handle @cors_preflight* {
+        header {
+            Access-Control-Allow-Origin "*"
+            Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            Access-Control-Allow-Headers *
+            Access-Control-Max-Age "3600"
+            defer # turn on defer on your header directive to make sure the new header values are set after proxying
+        }
+        respond "" 204
+    }
+
+    handle @cors* {
+        header {
+            Access-Control-Allow-Origin "*"
+            Access-Control-Expose-Headers *
+            defer
+        }
+    }
+}
+
 :80 {
-    # Geth RPC 엔드포인트 - GET 요청 처리 (빈 페이지 반환)
-    handle_path /rpc {
-        method GET
-        respond "" 200
-    }
+    import cors
     
-    # Geth RPC 엔드포인트 - POST 요청 처리 (Geth로 프록시)
-    handle_path /rpc {
-        method POST
-        reverse_proxy geth:8545
-    }
-    
-    # Geth RPC 엔드포인트 - 하위 경로
-    handle /rpc/* {
-        reverse_proxy geth:8545
-    }
-    
-    # 스마트 컨트랙트 배포 정보
-    handle /deployment {
-        rewrite * /deployment.json
+    handle /deployment* {
         reverse_proxy sc-deployment-server:80
     }
-    
-    # Blockscout Explorer - URL rewrite 후 frontend로 전달
-    handle /explorer {
-        rewrite * /
-        reverse_proxy frontend:3000
+
+    handle /explorer* {
+        uri strip_prefix /explorer
+        reverse_proxy proxy:80
+    }
+
+    handle /assets/* {
+        reverse_proxy proxy:80
     }
     
-    # Blockscout Explorer 하위 경로
-    handle /explorer/* {
-        rewrite * /
-        reverse_proxy frontend:3000
+    handle /_next/* {
+        reverse_proxy proxy:80
     }
     
-    # Graph Node GraphQL (playground)
-    handle_path /graph-playground* {
-        reverse_proxy graph-node:8000
+    handle /icons/* {
+        reverse_proxy proxy:80
     }
     
-    # Blockscout API (backend)
-    handle /api/* {
-        reverse_proxy backend:4000
+    handle /static/* {
+        reverse_proxy proxy:80
     }
     
-    # Blockscout Stats API
-    handle /stats/* {
-        reverse_proxy stats:4001
+    handle /rpc* {
+        uri strip_prefix /rpc
+        reverse_proxy geth:8545
     }
     
-    # Blockscout Visualizer
-    handle /visualizer/* {
-        reverse_proxy visualizer:4002
-    }
-    
-    # Blockscout Frontend (메인 페이지) - 기본 경로
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy geth:8545
+    }
+
+    handle /graph-playground* {
+        uri strip_prefix /graph-playground
+        reverse_proxy graph-node:8000
     }
 }
