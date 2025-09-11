@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   caddy:
-    image: caddy:2.7-alpine
+    image: caddy:2.7-alpineㅊ
     container_name: caddy
     ports:
       - "3000:80"
@@ -103,7 +103,7 @@ services:
       # Caddy 컨테이너의 80번 포트를 지정한 도메인으로 터널링합니다.
       - "http"
       - "--domain=${NGROK_DOMAIN}"
-      - "caddy:80" # cast balance 0x404fa3f0Acf620e3d2A3c6aa80E27b07C830EB5a -r https://adapting-haddock-yearly.ngrok-free.app
+      - "caddy:80" # cast balance 0x404fa3f0Acf620e3d2A3c6aa80E27b07C830EB5a -r https://glowworm-set-incredibly.ngrok-free.app
     depends_on:
       - caddy # Caddy가 먼저 실행된 후에 ngrok이 실행되도록 합니다.
     networks:

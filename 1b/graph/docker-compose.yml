@@ -3,7 +3,6 @@ services:
   graph-node:
     container_name: graph-node
     image: graphprotocol/graph-node:latest
-    platform: linux/arm64
     ports:
       - '8000:8000'
       - '8001:8001'
